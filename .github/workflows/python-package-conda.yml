@@ -21,6 +21,7 @@ jobs:
         conda update --all
     - name: Install dependencies
       run: |
+        conda install -n base libarchive -c main --force-reinstall --solver classic
         conda env update --file environment.yml --name base
     - name: Lint with flake8
       run: |
