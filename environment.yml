@@ -1,7 +1,6 @@
 name: vizeyes
 channels:
   - conda-forge
-  - anaconda
 dependencies:
   - matplotlib=3.9.3
   - numpy=2.1.3
