@@ -134,7 +134,7 @@ import os
 current_path = os.path.abspath(__file__)
 data_dir = os.path.abspath(os.path.join(current_path, "../../..", "data"))
 
-edf_path = os.path.join(data_dir, '538mtlP1.edf')
+edf_path = os.path.join(data_dir, 'TG_2011.edf')
 
 # read edf and print metadata
 edf = eyelinkio.read_edf(edf_path)
@@ -146,5 +146,3 @@ window_start = np.arange(0, 227, 2)
 window_duration = 0.2
 
 epochs, epoch_data = epoch_data(samples, window_start, window_duration)
-
-    
