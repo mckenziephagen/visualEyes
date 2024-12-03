@@ -72,7 +72,7 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
                 raise ValueError(f"Coordinates exceed screen boundaries.")
         elif shape == 'circle':
             x_center, y_center, radius = map(int, coordinates) #Convert to integers
-            if center_x - radius < 0 or center_y - radius < 0 or center_x + radius > screen_width or center_y + radius > screen_height:
+            if x_center - radius < 0 or y_center - radius < 0 or x_center + radius > screen_width or y_center + radius > screen_height:
                 raise ValueError(f"Circle exceeds screen boundaries.")
             for y in range(screen_height):
                 for x in range(screen_width):
