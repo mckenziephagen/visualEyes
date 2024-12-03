@@ -68,3 +68,19 @@
 - data from Component 1
 - screen specs from Component 2 (optional)
 - AOI from Component 3 (optional)
+
+# Component 6: thresholding
+## Purpose: 
+- calculate the percentage of data falls outside of the AOI mask for a certain epoch
+## Input:
+- dataframe of x and y coordinates of relevant data from pre-defined epochs
+- a 2D binary mask that has shape y resolution * x resolution, where AOI is flagged with 1 and the rest 0
+## Output:
+- a percentage 
+- or a probability density function if inputting multiple epochs
+## Other component used:
+- Component 3: Create epochs
+- Component 4: Define area of interest on the screen
+- Component 1 or 2 for generating the dataframe 
+
+
