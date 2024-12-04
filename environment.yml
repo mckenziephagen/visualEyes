@@ -5,5 +5,9 @@ dependencies:
   - matplotlib=3.9.3
   - numpy=2.1.3
   - pandas=2.2.3
+  - pip
+    pip: 
+        - eyelinkio=0.2.0
+
       
 prefix: /Users/kenziepaige/opt/anaconda3/envs/vizeyes
