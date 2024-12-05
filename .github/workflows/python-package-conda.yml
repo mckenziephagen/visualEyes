@@ -7,7 +7,9 @@ jobs:
     runs-on: macos-latest
     strategy:
       max-parallel: 5
-
+    defaults:
+      run:
+        shell: bash -l {0} 
     steps:
     - uses: actions/checkout@v4
   
@@ -19,6 +21,7 @@ jobs:
         activate-environment: vizeyes
     - name: Conda Info
       run: |
+        conda init
         conda activate vizeyes
         conda env list
         conda info -a
