@@ -87,8 +87,8 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
 
 
 #try it out
-screen_width = int(screen_coordinates[1])
-screen_height = int(screen_coordinates[0])
+screen_width = int(screen_coordinates[0])
+screen_height = int(screen_coordinates[1])
 aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462','590', '563', '691')}] #I'm setting 50 pixels to each side of the midpoint of the screen
 print(screen_height)
 print(screen_width)
@@ -99,4 +99,5 @@ print("Number of AOI pixels:", np.sum(mask))
 #plot it, just to see that it does draw things!
 plt.imshow(mask, cmap='gray')  #gray colormap to show the binary mask
 plt.title("AOI Mask")
+plt.gca().invert_yaxis() #eyelink has 0,0 on top left so we invert it here
 plt.show()
