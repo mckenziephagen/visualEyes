@@ -17,6 +17,10 @@ jobs:
         python-version: "3.12" 
         environment-file: environment.yml
         activate-environment: vizeyes
+    - name: Conda Info
+        run: |
+          conda info -a
+          conda list
 
     - name: Install current project 
       run: |
