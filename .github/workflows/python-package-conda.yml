@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     strategy:
       max-parallel: 5
 
@@ -23,6 +23,11 @@ jobs:
       run: |
         conda install --solver=classic conda-forge::conda-libmamba-solver conda-forge::libmamba conda-forge::libmambapy conda-forge::libarchive
         conda env update --file environment.yml --name base
+
+    - name: Install current project 
+      run: |
+        pip install -e . --no-deps
+
     - name: Lint with flake8
       run: |
         conda install flake8
