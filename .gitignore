@@ -167,7 +167,7 @@ cython_debug/
 # avoid committing data 
 .data/
 *.asc
-*.edf
+*.csv
 
 # avoid jupyter file
 .jupyter/
