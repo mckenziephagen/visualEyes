@@ -2,13 +2,11 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import vizeyes
 import eyelinkio
 
-from visualeyes.define_aoi import define_aoi
-
 def test_define_aoi(): 
-    edf_path = os.path.join(os.getcwd(), 
-                            'tests/data/test_file1.edf')
+    edf_path = os.path.join('data', 'TG_2015.EDF')
     
     edf = eyelinkio.read_edf(edf_path)
     
@@ -18,4 +16,4 @@ def test_define_aoi():
     
     aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462','590', '563', '691')}]
     
-    mask = define_aoi(screen_width, screen_height, aoi_definitions) 
+    mask = vizeyes.define_aoi(screen_width, screen_height, aoi_definitions) 
