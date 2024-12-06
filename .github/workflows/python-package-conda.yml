@@ -24,6 +24,10 @@ jobs:
         conda env list
         conda info -a
         conda list
+    - name: Install Eyelink
+      run: | 
+	curl -O https://www.sr-research.com/download/displaysoftwarerelease/EyeLinkDevKit_macOS10.12_and_up_v2.1.1197.dmg --verbose
+
     - name: Lint with flake8
       run: |
         python -c "import flake8; print(flake8.__version__)"
