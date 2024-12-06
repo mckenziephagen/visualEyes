@@ -8,7 +8,7 @@ dependencies:
   - flake8
   - pytest
   - pip:
-      - -e git+https://github.com/BrendaQiu/eyelinkio.git@trial_info
+      - -e git+https://github.com/BrendaQiu/eyelinkio.git@trial_info#egg=eyelinkio
       - -e . --no-deps
 
 
