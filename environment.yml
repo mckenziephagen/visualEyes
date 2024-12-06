@@ -9,6 +9,6 @@ dependencies:
   - pytest
   - pip:
       - -e git+https://github.com/BrendaQiu/eyelinkio.git@trial_info#egg=eyelinkio
-      - -e . --no-deps
+      - -e .
 
 
