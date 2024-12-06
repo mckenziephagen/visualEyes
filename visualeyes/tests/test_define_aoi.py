@@ -14,6 +14,6 @@ def test_define_aoi():
     screen_width = int(screen_coords[1])
     screen_height = int(screen_coords[0])
     
-    aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462','590', '563', '691')}]
+    aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462', '590', '563', '691')}]
     
     mask = visualeyes.define_aoi(screen_width, screen_height, aoi_definitions) 
