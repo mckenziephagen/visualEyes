@@ -6,8 +6,9 @@ dependencies:
   - numpy=2.1.3
   - pandas=2.2.3
   - flake8
+  - pytest
   - pip:
-      - eyelinkio
-      - git+https://github.com/BrendaQiu/eyelinkio.git@trial_info
+      - -e git+https://github.com/BrendaQiu/eyelinkio.git@trial_info
+      - -e . --no-deps
 
 
