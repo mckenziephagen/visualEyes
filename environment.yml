@@ -7,7 +7,7 @@ dependencies:
   - pandas=2.2.3
   - flake8
   - pip:
+      - eyelinkio
       - git+https://github.com/BrendaQiu/eyelinkio.git@trial_info
 
-      
-prefix: /Users/kenziepaige/opt/anaconda3/envs/vizeyes
+
