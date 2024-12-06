@@ -32,15 +32,15 @@ def epoch_data(eye_data, window_start, window_duration):
         raise ValueError('data should contain a time column')
     
     # window_start must be either a list, a numpy array, or a single value
-    if not isinstance(window_start, (list, np.ndarray, int, float)):
+    if not isinstance(window_start, (list, np.ndarray, numbers.Integral, numbers.Real)):
         raise ValueError('window_start should be a list, a numpy array, or a single value')
     
     # window_duration must be either a list, a numpy array, or a single value
-    if not isinstance(window_duration, (list, np.ndarray, int, float)):
+    if not isinstance(window_duration, (list, np.ndarray, numbers.Integral, numbers.Real)):
         raise ValueError('window_duration should be a list, a numpy array, or a single value')
     
     # if window_start is a single value, window_duration should also be a single value
-    if isinstance(window_start, (int, float)) and not isinstance(window_duration, (int, float)):
+    if isinstance(window_start, (numbers.Integral, numbers.Real)) and not isinstance(numbers.Integral, numbers.Real):
         raise ValueError('if window_start is a single value, window_duration should also be a single value')
     
     # if window_start is a list or numpy array, window_duration can be a list, a numpy array, or a single value
@@ -71,7 +71,7 @@ def epoch_data(eye_data, window_start, window_duration):
     if isinstance(window_duration, (list, np.ndarray)):
         if window_start[-1] + window_duration[-1] > eye_data['time'].iloc[-1]:
             raise ValueError('the end of the last window should be equal or less than the last time in the data')
-    elif isinstance(window_duration, (int, float)):
+    elif isinstance(window_duration, (numbers.Integral, numbers.Real)):
         if window_start[-1] + window_duration > eye_data['time'].iloc[-1]:
             raise ValueError('the end of the last window should be equal or less than the last time in the data')
         
