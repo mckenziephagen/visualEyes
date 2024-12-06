@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import vizeyes
+import visualeyes
 import eyelinkio
 
 def test_define_aoi(): 
@@ -16,4 +16,4 @@ def test_define_aoi():
     
     aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462','590', '563', '691')}]
     
-    mask = vizeyes.define_aoi(screen_width, screen_height, aoi_definitions) 
+    mask = visualeyes.define_aoi(screen_width, screen_height, aoi_definitions) 
