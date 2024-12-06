@@ -21,8 +21,6 @@ jobs:
         activate-environment: vizeyes
     - name: Conda Info
       run: |
-        conda init
-        conda activate vizeyes
         conda env list
         conda info -a
         conda list
