@@ -27,8 +27,8 @@ jobs:
 
     - name: Install current project 
       run: |
+        pip install eyelinkio
         pip install -e . --no-deps
-
     - name: Lint with flake8
       run: |
         python -c "import flake8; print(flake8.__version__)"
