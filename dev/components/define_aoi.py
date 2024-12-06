@@ -1,4 +1,5 @@
 import numpy as np
+import numbers
 
 def define_aoi(screen_width, screen_height, aoi_definitions):
     """
@@ -19,17 +20,17 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
     - mask (2D numpy array): Binary mask of the AOIs
     """
     #Check inputs 
-    if not isinstance(screen_width, int):
+    if not isinstance(screen_width, numbers.Integral):
         raise ValueError("Screen width coordinates must be integers.")
 
-    if not isinstance(screen_height, int):
+    if not isinstance(screen_height, numbers.Integral):
         raise ValueError("Screen height coordinates must be integers.")
 
     if screen_width <= 0 or screen_height <= 0:
         raise ValueError("Screen dimensions must be positive.")
 
     if not isinstance(aoi_definitions, list):
-        raise ValueError("AOI coordinates must be a list of dictionaries.")
+        raise ValueError("AOI definitions must be a list of dictionaries.")
 
     #Initialize a mask
     mask = np.zeros((screen_height, screen_width), dtype=np.uint8)
