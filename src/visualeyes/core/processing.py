@@ -1,8 +1,6 @@
-'''
-from a dataframe, create epochs of data using give windows
-'''
-import pandas as pd
 import numpy as np
+import pandas as pd
+import numbers
 
 def epoch_data(eye_data, window_start, window_duration):
     '''
@@ -124,25 +122,61 @@ def epoch_data(eye_data, window_start, window_duration):
     
     return epochs, epoch_data
 
+def define_aoi(screen_width, screen_height, aoi_definitions):
+    """
+    Define Areas of Interest (AOIs).
+    
+    Inputs:
+    - screen_width (int): Width of the screen in pixels.
+    - screen_height (int): Height of the screen in pixels.
+    - aoi_definitions (list of dict): Each dict defines one AOI (so we can have multiple) with keys:
+        - 'shape': 'rectangle' or 'circle'.
+        - 'coordinates': Tuple of coordinates:
+            - For rectangluar AOI's: (x1, y1, x2, y2), upper-bounds non-inclusive. 
+            - For circlular AOI's: (x_center, y_center, radius).
+    - visual_angle (dict, optional): Info to convert visual angles to pixels.
+        Keys might include 'eye_to_screen_distance' and 'screen_resolution'.
 
-# Example
-import eyelinkio
-import numpy as np
-import os
+    Output:
+    - mask (2D numpy array): Binary mask of the AOIs
+    """
+    #Check inputs 
+    if not isinstance(screen_width, numbers.Integral):
+        raise ValueError("Screen width coordinates must be integers.")
 
-# define path to data
-current_path = os.path.abspath(__file__)
-data_dir = os.path.abspath(os.path.join(current_path, "../../..", "data"))
+    if not isinstance(screen_height, numbers.Integral):
+        raise ValueError("Screen height coordinates must be integers.")
 
-edf_path = os.path.join(data_dir, 'TG_2011.edf')
+    if screen_width <= 0 or screen_height <= 0:
+        raise ValueError("Screen dimensions must be positive.")
 
-# read edf and print metadata
-edf = eyelinkio.read_edf(edf_path)
-df = edf.to_pandas()
-samples = df['samples']
-samples['time'] = edf['times']
+    if not isinstance(aoi_definitions, list):
+        raise ValueError("AOI definitions must be a list of dictionaries.")
 
-window_start = np.arange(0, 227, 2)
-window_duration = 0.2
+    #Initialize a mask
+    mask = np.zeros((screen_height, screen_width), dtype=np.uint8)
 
-epochs, epoch_data = epoch_data(samples, window_start, window_duration)
+    #Define each AOI
+    for aoi in aoi_definitions:
+        shape = aoi['shape'].lower()
+        coordinates = aoi['coordinates']
+        
+        if shape == 'rectangle':
+        
+            x1, y1, x2, y2 = map(int, coordinates) #Convert to integers
+            mask[y1:y2, x1:x2] = 1  #All pixels within the rectangle are 1
+            if x1 < 0 or y1 < 0 or x2 > screen_width or y2 > screen_height:
+                raise ValueError(f"Coordinates exceed screen boundaries.")
+        elif shape == 'circle':
+            x_center, y_center, radius = map(int, coordinates) #Convert to integers
+            if x_center - radius < 0 or y_center - radius < 0 or x_center + radius > screen_width or y_center + radius > screen_height:
+                raise ValueError(f"Circle exceeds screen boundaries.")
+            for y in range(screen_height):
+                for x in range(screen_width):
+                    # Use the equation of a circle to check if (x, y) is inside
+                    if (x - x_center)**2 + (y - y_center)**2 <= radius**2:
+                        mask[y, x] = 1 #All pixels within the circle are 1
+        else:
+            raise ValueError(f"Unsupported AOI shape: {shape}")
+    
+    return mask

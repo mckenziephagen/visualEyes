@@ -169,5 +169,9 @@ cython_debug/
 *.asc
 *.csv
 
+# avoid committing certain edf files
+538mtlP1.edf
+TG_2011.edf
+
 # avoid jupyter file
 .jupyter/
