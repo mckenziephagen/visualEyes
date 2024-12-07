@@ -5,8 +5,11 @@ dependencies:
   - matplotlib=3.9.3
   - numpy=2.1.3
   - pandas=2.2.3
+  - flake8
+  - pytest
+  - pip 
   - pip:
-      - git+https://github.com/BrendaQiu/eyelinkio.git@trial_info
+      - eyelinkio
+      - -e .
 
-      
-prefix: /Users/kenziepaige/opt/anaconda3/envs/vizeyes
+

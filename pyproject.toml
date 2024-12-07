@@ -26,3 +26,7 @@ classifiers = [
 
 [tool.setuptools_scm]
 
+[tool.setuptools.packages.find]
+include = ["visualeyes*"]
+namespaces = false
+
