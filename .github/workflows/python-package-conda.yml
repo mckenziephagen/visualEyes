@@ -27,7 +27,7 @@ jobs:
     - name: Install Eyelink
       run: | 
         curl -O https://www.sr-research.com/download/displaysoftwarerelease/EyeLinkDevKit_macOS10.12_and_up_v2.1.1197.dmg --verbose
-        hdiutil attach EyeLinkDevKit_macOS10.12_and_up_v2.1.1197.dmg -mountpoint /Volumes/eyelink_devkit.pkg
+        hdiutil attach EyeLinkDevKit_macOS10.12_and_up_v2.1.1197.dmg -mountpoint /Volumes/eyelink_devkit
         installer -pkg /Volumes/eyelink_devkit/EyeLinkDevelopersKit.pkg -target /
     - name: Lint with flake8
       run: |
