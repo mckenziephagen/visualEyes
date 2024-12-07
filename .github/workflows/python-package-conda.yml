@@ -1,9 +1,9 @@
 name: Python Package using Conda
 
-on: [push]
+on: [push, pr]
 
 jobs:
-  build-linux:
+  build-mac:
     runs-on: macos-latest
     strategy:
       max-parallel: 5
