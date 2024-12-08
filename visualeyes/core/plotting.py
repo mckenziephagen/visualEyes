@@ -7,7 +7,8 @@ import os
 
 def fixations_within_aoi(filepath, dataframe, savepath):
     """
-    calculate the ratio of and plot fixations within the Area of Interest (AOI) for each trial
+    calculate the ratio of fixations within the Area of Interest (AOI) for each trial
+    plot all fixations on the binary image and save as svg file
 
     Inputs:
     - filepath: string
