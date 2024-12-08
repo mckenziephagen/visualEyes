@@ -5,7 +5,7 @@ from eyelinkio import read_edf
 import matplotlib.pyplot as plt
 import os
 
-def fixations_within_aoi(filepath, dataframe, savepath):
+def plot_fixations_aoi(filepath, dataframe, savepath):
     """
     calculate the ratio of fixations within the Area of Interest (AOI) for each trial
     plot all fixations on the binary image and save as svg file
