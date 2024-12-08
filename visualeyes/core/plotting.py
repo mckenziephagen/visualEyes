@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from visualeyes.define_aoi import define_aoi
+from visualeyes.processing import define_aoi
 from eyelinkio import read_edf
 import matplotlib.pyplot as plt
 import os
