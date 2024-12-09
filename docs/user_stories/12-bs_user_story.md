@@ -1,0 +1,1 @@
+A research assistant managing eye-tracking data collection wants to process gaze data after runs to ensure quality control. They need efficient visualizations to provide feedback to participants. They are proficient at running scripts but not writing them.
