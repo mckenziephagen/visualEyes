@@ -41,7 +41,7 @@ def epoch_data(eye_data, window_start, window_duration):
         raise ValueError('window_duration should be a list, a numpy array, or a single value')
     
     # if window_start is a single value, window_duration should also be a single value
-    if isinstance(window_start, (numbers.Integral, numbers.Real)) and not isinstance(numbers.Integral, numbers.Real):
+    if isinstance(window_start, (numbers.Integral, numbers.Real)) and not isinstance(window_duration, (numbers.Integral, numbers.Real)):
         raise ValueError('if window_start is a single value, window_duration should also be a single value')
     
     # if window_start is a list or numpy array, window_duration can be a list, a numpy array, or a single value
@@ -130,7 +130,7 @@ def define_aoi(screen_dimensions, aoi_definitions):
     Parameters:
     -----------
     screen_dimensions : tuple, list, or np.array
-        Screen dimensions (width, height).
+        Screen dimensions (height, width).
         
     aoi_definitions : dict or a list of dict
         Each dictionary defines one AOI (so we can have multiple) with keys:
@@ -159,30 +159,28 @@ def define_aoi(screen_dimensions, aoi_definitions):
 
     # check if aoi_definitions is a dictionary, a list of dictionaries, or a numpy array of dictionaries
     if not isinstance(aoi_definitions, (dict, list, np.ndarray)):
-        raise ValueError("AOI definitions must be a dictionary, a list of dictionaries, or a numpy array.")
+        raise ValueError("AOI definitions must be a dictionary, a list of dictionaries, or a numpy array of dictionaries.")
     
     # check if the list or numpy array actually contains dictionaries
     if isinstance(aoi_definitions, (list, np.ndarray)):
         if not all(isinstance(aoi, dict) for aoi in aoi_definitions):
             raise ValueError("AOI definitions must be a list of dictionaries or a numpy array of dictionaries.")
     
-    # check if all dictionaries in aoi_definitions have the keys 'shape' and 'coordinates'
+    # if aoi_definitions is a dict, convert it to a list
     if isinstance(aoi_definitions, dict):
-        if 'shape' not in aoi_definitions.keys():
-            raise ValueError("AOI definitions should have the key 'shape'")
-        if 'coordinates' not in aoi_definitions.keys():
-            raise ValueError("AOI definitions should have the key 'coordinates'")
-    elif isinstance(aoi_definitions, list):
-        for aoi in aoi_definitions:
-            if 'shape' not in aoi.keys():
-                raise ValueError("AOI definitions should have the key 'shape'")
-            if 'coordinates' not in aoi.keys():
-                raise ValueError("AOI definitions should have the key 'coordinates'")
+        aoi_definitions = [aoi_definitions]
+        
+    # check if all dictionaries in aoi_definitions have the keys 'shape' and 'coordinates'
+    required_keys = {'shape', 'coordinates'}
+        
+    for aoi in aoi_definitions:
+        if not required_keys.issubset(aoi.keys()):
+            raise KeyError(f"AOI definitions must include {required_keys}")
 
     # Initialize a mask
     # mask is a 2D numpy array with the same dimensions as the screen
-    screen_width, screen_height = screen_dimensions
-    mask = np.zeros((screen_width, screen_height), dtype=np.uint8)
+    screen_height, screen_width = screen_dimensions
+    mask = np.zeros((screen_height, screen_width), dtype=np.uint8)
 
     # Define each AOI
     for aoi in aoi_definitions:
@@ -191,15 +189,31 @@ def define_aoi(screen_dimensions, aoi_definitions):
         
         if shape == 'rectangle':
             
+            # Check if cordinates is a tuple, list, or numpy array that contains four elements
+            if not isinstance(coordinates, (tuple, list, np.ndarray)) or len(coordinates) != 4:
+                raise ValueError("Rectangle coordinates must be a tuple, list, or numpy array with four elements.")
+            
+            # Check if coordinates include four positive integers
+            if not all((isinstance(coord, numbers.Integral) and coord > 0) for coord in coordinates):
+                raise ValueError("Rectangle coordinates must be four positive integers.")
+            
+            x1, x2, y1, y2 = map(int, coordinates) # Convert input coordinates to integers
+            
             # Check if the AOI is within the screen boundaries (non-inclusive)
             # If not, raise an error
             if not (0 <= x1 < x2 <= screen_width and 0 <= y1 < y2 <= screen_height):
                 raise ValueError(f"Coordinates exceed screen boundaries or are invalid (e.g., x1 >= x2 or y1 >= y2).")
 
-            x1, x2, y1, y2 = map(int, coordinates) # Convert input coordinates to integers
-            mask[x1:x2, y1:y2] = 1  # All pixels within the rectangle are 1
+            mask[y1:y2, x1:x2] = 1  # All pixels within the rectangle are 1
             
         elif shape == 'circle':
+            
+             # Check if cordinates is a tuple, list, or numpy array that contains three elements
+            if not isinstance(coordinates, (tuple, list, np.ndarray)) or len(coordinates) != 3:
+                raise ValueError("Circle coordinates must be a tuple, list, or numpy array with three elements.")
+            
+            if not all((isinstance(coord, numbers.Integral) and coord > 0) for coord in coordinates):
+                raise ValueError("Circle coordinates must be three positive integers.")
             
             x_center, y_center, radius = map(int, coordinates) # Convert input coordinates to integers
             
@@ -215,7 +229,7 @@ def define_aoi(screen_dimensions, aoi_definitions):
             #             mask[y, x] = 1 #All pixels within the circle are 1
                         
             # More efficiently, we can use numpy to create the mask (faster than looping)
-            x, y = np.ogrid[:screen_width, :screen_height]  # Create a grid of x and y coordinates
+            y, x = np.ogrid[:screen_height, :screen_width] # Create a grid of x and y coordinates
             mask[(x - x_center)**2 + (y - y_center)**2 <= radius**2] = 1 # Set all pixels within the circle to 1
 
         else:
@@ -253,13 +267,10 @@ def percent_data_in_aoi(df, aoi_mask, screen_dimension):
     y_coord = coords[1]
     
     # count the number of data points in the AOI
-    num_data_in_aoi = 0
-    for x, y in zip(x_coord, y_coord):
-        if aoi_mask[y, x] == 1:
-            num_data_in_aoi += 1
-            
+    in_aoi = aoi_mask[y_coord, x_coord] == 1
+    num_data_in_aoi = np.sum(in_aoi)
+ 
     # calculate the percentage of data points in the AOI
-    total_data_points = len(x_coord)
-    percent_in_aoi = (num_data_in_aoi/total_data_points) * 100
+    percent_in_aoi = num_data_in_aoi/ len(x_coord) * 100
     
     return percent_in_aoi
