@@ -161,6 +161,11 @@ def define_aoi(screen_dimensions, aoi_definitions):
     if not isinstance(aoi_definitions, (dict, list, np.array)):
         raise ValueError("AOI definitions must be a dictionary, a list of dictionaries, or a numpy array.")
     
+    # check if the list or numpy array actually contains dictionaries
+    if isinstance(aoi_definitions, (list, np.array)):
+        if not all(isinstance(aoi, dict) for aoi in aoi_definitions):
+            raise ValueError("AOI definitions must be a list of dictionaries or a numpy array of dictionaries.")
+    
     # check if all dictionaries in aoi_definitions have the keys 'shape' and 'coordinates'
     if isinstance(aoi_definitions, dict):
         if 'shape' not in aoi_definitions.keys():
