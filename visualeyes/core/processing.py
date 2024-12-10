@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import numbers
+from .utility import aoi_mask_validation, dataframe_validation
 
 def epoch_data(eye_data, window_start, window_duration):
     '''
@@ -146,7 +147,7 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
     mask : 2D numpy array
         Binary mask of the AOIs
     """
-    #Check inputs 
+    # Check inputs 
     if not isinstance(screen_width, numbers.Integral):
         raise ValueError("Screen width coordinates must be integers.")
 
@@ -159,10 +160,10 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
     if not isinstance(aoi_definitions, list):
         raise ValueError("AOI definitions must be a list of dictionaries.")
 
-    #Initialize a mask
+    # Initialize a mask
     mask = np.zeros((screen_height, screen_width), dtype=np.uint8)
 
-    #Define each AOI
+    # Define each AOI
     for aoi in aoi_definitions:
         shape = aoi['shape'].lower()
         coordinates = aoi['coordinates']
@@ -187,3 +188,45 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
     
     return mask
 
+def percent_data_in_aoi(df, aoi_mask, screen_dimension):
+    
+    """
+    Calculate the percentage of data points in the AOI.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Dataframe containing the x and y coordinates of the data points.
+    aoi_mask : 2D np.array
+        Binary mask of the AOI.
+    screen_dimension : tuple
+        Screen dimension (width, height).
+    
+    Returns:
+    --------
+    percent_in_aoi : float
+        Percentage of data points in the AOI.
+    """
+    
+    # validate aoi_mask
+    aoi_mask_validation(aoi_mask, screen_dimension)
+    
+    # check if df contains valid data
+    valid, coords = dataframe_validation(df)
+    if not valid:
+        raise ValueError('dataframe is not valid')
+    
+    x_coord = coords[0]
+    y_coord = coords[1]
+    
+    # count the number of data points in the AOI
+    num_data_in_aoi = 0
+    for x, y in zip(x_coord, y_coord):
+        if aoi_mask[y, x] == 1:
+            num_data_in_aoi += 1
+            
+    # calculate the percentage of data points in the AOI
+    total_data_points = len(x_coord)
+    percent_in_aoi = (num_data_in_aoi/total_data_points) * 100
+    
+    return percent_in_aoi
