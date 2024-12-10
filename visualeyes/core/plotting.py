@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import os
 import visualeyes
 
-def plot_fixations_aoi(epoch_data, aoi_mask, save_png = None, save_path=None):
+def plot_epoch_aoi(epoch_data, aoi_mask, save_png = None, save_path=None):
     """
-    plot the fixations on the AOI mask, and optionally save the plot as a PNG file.
+    plot the epoch data on the AOI mask, and optionally save the plot as a PNG file.
 
     Inputs:
     - epoch_data : pd.DataFrame
