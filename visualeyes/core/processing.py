@@ -146,7 +146,7 @@ def define_aoi(screen_dimensions, aoi_definitions):
     """
     
     # Check if screen_dimensions is a tuple, list, or numpy array
-    if not isinstance(screen_dimensions, (tuple, list, np.array)):
+    if not isinstance(screen_dimensions, (tuple, list, np.ndarray)):
         raise ValueError("Screen dimensions must be a tuple, list, or numpy array.")
     
     # Check if screen_dimensions has two elements
@@ -158,11 +158,11 @@ def define_aoi(screen_dimensions, aoi_definitions):
         raise ValueError("Screen dimensions must be positive integers.")
 
     # check if aoi_definitions is a dictionary, a list of dictionaries, or a numpy array of dictionaries
-    if not isinstance(aoi_definitions, (dict, list, np.array)):
+    if not isinstance(aoi_definitions, (dict, list, np.ndarray)):
         raise ValueError("AOI definitions must be a dictionary, a list of dictionaries, or a numpy array.")
     
     # check if the list or numpy array actually contains dictionaries
-    if isinstance(aoi_definitions, (list, np.array)):
+    if isinstance(aoi_definitions, (list, np.ndarray)):
         if not all(isinstance(aoi, dict) for aoi in aoi_definitions):
             raise ValueError("AOI definitions must be a list of dictionaries or a numpy array of dictionaries.")
     
