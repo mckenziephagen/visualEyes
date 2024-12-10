@@ -126,19 +126,25 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
     """
     Define Areas of Interest (AOIs).
     
-    Inputs:
-    - screen_width (int): Width of the screen in pixels.
-    - screen_height (int): Height of the screen in pixels.
-    - aoi_definitions (list of dict): Each dict defines one AOI (so we can have multiple) with keys:
+    Parameters:
+    -----------
+    screen_width : int
+        Width of the screen in pixels.
+    screen_height : int
+        Height of the screen in pixels.
+    aoi_definitions : list of dict
+        Each dict defines one AOI (so we can have multiple) with keys:
         - 'shape': 'rectangle' or 'circle'.
         - 'coordinates': Tuple of coordinates:
-            - For rectangluar AOI's: (x1, y1, x2, y2), upper-bounds non-inclusive. 
+            - For rectangluar AOI's: (x1, x2, y1, y2), upper-bounds non-inclusive. 
             - For circlular AOI's: (x_center, y_center, radius).
-    - visual_angle (dict, optional): Info to convert visual angles to pixels.
-        Keys might include 'eye_to_screen_distance' and 'screen_resolution'.
-
-    Output:
-    - mask (2D numpy array): Binary mask of the AOIs
+    visual_angle : dict, optional
+        Info to convert visual angles to pixels.
+        
+    Returns:
+    --------
+    mask : 2D numpy array
+        Binary mask of the AOIs
     """
     #Check inputs 
     if not isinstance(screen_width, numbers.Integral):
@@ -180,3 +186,4 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
             raise ValueError(f"Unsupported AOI shape: {shape}")
     
     return mask
+
