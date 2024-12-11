@@ -81,7 +81,7 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
 
     return fig, ax
 
-def aoi_overlay(aoi_definitions, screen_width, screen_height):
+def overlay_aoi(aoi_definitions, screen_width, screen_height):
     """
     Overlay shape of AOIs on plots.
 
