@@ -2,9 +2,21 @@ import pytest
 import pandas as pd
 from visualeyes import epoch_data
 
+def test_run_correctly():
+    """
+    Smoke test of whether the function runs without errors for valid input
+    """
+    eye_data = pd.DataFrame({'time': [0, 1, 2, 3, 4, 5], 'value': [10, 20, 30, 40, 50, 60]})
+    window_start = [0, 3]
+    window_duration = [2, 2]
+    
+    _ = epoch_data(eye_data, window_start, window_duration)
+    
+    return None
+
 def test_epoch_data_valid_input():
     """
-    Test if the function runs without errors for valid input
+    One shot test of whether the function runs without errors for valid input
     """
     eye_data = pd.DataFrame({'time': [0, 1, 2, 3, 4, 5], 'value': [10, 20, 30, 40, 50, 60]})
     window_start = [0, 3]
@@ -25,7 +37,7 @@ def test_epoch_data_valid_input():
 
 def test_epoch_data_invalid_input():
     """
-    Test if the function raises errors for invalid input
+    One shot test of whether the function raises errors for invalid input
     """
     # Test with missing 'time' column
     eye_data = pd.DataFrame({'value': [10, 20, 30]})

@@ -4,9 +4,9 @@ import eyelinkio
 import pytest
 import numpy as np
 
-def test_smoke(): 
+def test_run_correctly():
     """
-    Test if the function runs without errors for all edf files in the data folder
+    Smoke test of whether the function runs without errors for all edf files in the data folder
     """
 
     data_path = os.path.join('..', '..', 'data')
@@ -30,7 +30,7 @@ def test_smoke():
            
 def test_define_aoi_rectangle():
     """
-    Test if the function correctly defines a rectangular AOI
+    One shot test of whether the function correctly defines a rectangular AOI
     """
     screen_dimensions = (10, 10)
     aoi_definitions = [{'shape': 'rectangle', 'coordinates': (2, 5, 2, 5)}]
@@ -46,7 +46,7 @@ def test_define_aoi_rectangle():
 
 def test_define_aoi_circle():
     """
-    Test if the function correctly defines a circular AOI
+    One shot test of whether the function correctly defines a circular AOI
     """
     screen_dimensions = (10, 10)
     aoi_definitions = [{'shape': 'circle', 'coordinates': (5, 5, 2)}]
@@ -64,7 +64,7 @@ def test_define_aoi_circle():
 
 def test_define_aoi_invalid_input():
     """
-    Test if the function raises errors for invalid input
+    One shot test of whether the function raises errors for invalid input
     """
     # Test with invalid screen dimensions
     with pytest.raises(ValueError, match="Screen dimensions must have two elements."):
