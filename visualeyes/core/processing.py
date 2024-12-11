@@ -220,7 +220,7 @@ def define_aoi(screen_dimensions, aoi_definitions):
             # Check if the AOI is within the screen boundaries
             if ((x_center - radius) < 0) or ((y_center - radius) < 0) or ((x_center + radius > screen_width)) or ((y_center + radius) > screen_height):
                 raise ValueError(f"Circle exceeds screen boundaries.")
-        
+  
             # We can use numpy to create the mask (faster than looping)
             y, x = np.ogrid[:screen_height, :screen_width] # Create a grid of x and y coordinates
             mask[(x - x_center)**2 + (y - y_center)**2 <= radius**2] = 1 # Set all pixels within the circle to 1
