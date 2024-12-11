@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from .utility import dataframe_validation
+from .utility import (dataframe_validation, aoi_definitions_validation, screen_dimensions_validation)
 import numbers
 
-def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None, save_path=None):
+def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None, save_path=None, marker_size=60):
     """
     Plot the data on the AOI mask, and optionally save the plot to the working directory as a PNG file.
 
@@ -36,6 +36,9 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     if not isinstance(data, pd.DataFrame):
         raise ValueError("Input data should be a pandas dataframe")
     
+    # check if screen_dimensions is valid
+    screen_dimensions_validation(screen_dimensions)
+    
     # validate the input dataframe and save the x and y coordinates if the dataframe is valid
     x_coord, y_coord = dataframe_validation(data)
 
@@ -43,36 +46,50 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     out_of_bounds_x = np.where((x_coord < 0) | (x_coord >= screen_dimensions[1]))[0] # list of indices
     out_of_bounds_y = np.where((y_coord < 0) | (y_coord >= screen_dimensions[0]))[0] # list of indices
 
+    # combine the out of bounds indices
     out_of_bounds = np.unique(np.concatenate([out_of_bounds_x, out_of_bounds_y]))
 
+    # remove the out of bounds data
     clean_data = data.drop(index=out_of_bounds)
 
+    # Initialize the plot
     fig, ax = plt.subplots()
-
+    
+    # Set the plot limits
     ax.set_xlim(0, screen_dimensions[1]-1)
-
     ax.set_ylim(0, screen_dimensions[0]-1)
 
-    ax.set_ylim(ax.get_ylim()[::-1])
+    # Invert y-axis to match screen coordinates
+    ax.invert_yaxis()
 
+    # Set the x-axis to the top
     ax.xaxis.tick_top()
 
-    # plot scatter plot
+    # if the data contains 'axp' and 'ayp' columns, plot the data with varying marker sizes
     if 'axp' in clean_data.columns and 'ayp' in clean_data.columns:
+        
+        # calculate the fixation duration
         fixation_duration = []
+        
         for _, series in clean_data.iterrows():
             single_duration = series['etime'] - series['stime']
             fixation_duration.append(single_duration)
+            
+        # find a scaling factor for the marker size
         max_duration = round(max(fixation_duration), 2)
         mag_factor = [duration/max_duration for duration in fixation_duration]
-        ax.scatter(clean_data['axp'], clean_data['ayp'], color='skyblue', marker='o', facecolors='none', s=[160 * mag for mag in mag_factor]) 
+        
+        # plot the data
+        ax.scatter(clean_data['axp'], clean_data['ayp'], color='skyblue', marker='o', 
+                   facecolors='none', s=[3 * marker_size * mag for mag in mag_factor]) 
+    
     else:
-        ax.scatter(clean_data['xpos'], clean_data['ypos'], color='skyblue', marker='o', s=60)
+        # plot the data with a fixed marker size
+        ax.scatter(clean_data['xpos'], clean_data['ypos'], color='skyblue', marker='o', s=marker_size)
     
     # optionally, overlay aoi
     if aoi_definitions is not None:
-        # ax = visualeyes.aoi_contour
-        pass
+        ax.overlay(aoi_definitions, screen_dimensions, ax)
 
     if save_png:
         if not save_path:
@@ -106,52 +123,27 @@ def overlay_aoi(aoi_definitions, screen_dimensions, ax):
         The axes object with the AOIs overlaid.
     """
     
+    # Validate the input AOI definitions
+    aoi_definitions_validation(aoi_definitions, screen_dimensions)
+    
+    # Validate the screen dimensions
+    screen_dimensions_validation(screen_dimensions)
+    
     screen_height, screen_width = screen_dimensions
 
-    for idx, aoi in enumerate(aoi_definitions): #check for each AOI and make the error specific to that AOI
+    for idx, aoi in enumerate(aoi_definitions): # check for each AOI and make the error specific to that AOI
         shape = aoi['shape'].lower()
         coordinates = aoi['coordinates']
-        
-        # Check shape
-        if shape not in ['rectangle', 'circle']:
-            raise ValueError(f"Unsupported AOI shape '{shape}' in AOI {idx + 1}. Must be 'rectangle' or 'circle'.")
-        
-        # Check coordinates
-        if not all(isinstance(coord, (int, float)) for coord in coordinates):
-            raise ValueError(f"All coordinates must be numbers in AOI {idx + 1}.")
-        
-        if any(coord < 0 for coord in coordinates):
-            raise ValueError(f"Coordinates cannot be negative in AOI {idx + 1}.")
-        
+
         if shape == 'rectangle':
-            if len(coordinates) != 4:
-                raise ValueError(f"Rectangle AOI {idx + 1} must have 4 coordinates: [x1, x2, y1, y2].")
-            
-            x1, x2, y1, y2 = coordinates
-            
-            if x1 > x2:
-                raise ValueError(f"x1 cannot be greater than x2 in AOI {idx + 1}.")
-            if y1 > y2:
-                raise ValueError(f"y1 cannot be greater than y2 in AOI {idx + 1}.")
-            
-            if x2 > screen_width or y2 > screen_height:
-                raise ValueError(f"AOI {idx + 1} exceeds screen boundaries (Width: {screen_width}, Height: {screen_height}).")
+            x1, x2, y1, y2 = map(int, coordinates)
             
             # Plot rectangle boundary on the axes
             ax.plot([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1], color='red', lw=1)
         
         elif shape == 'circle':
-            if len(coordinates) != 3:
-                raise ValueError(f"Circle AOI {idx + 1} must have 3 coordinates: [x_center, y_center, radius].")
             
             x_center, y_center, radius = coordinates
-            
-            if radius <= 0:
-                raise ValueError(f"Radius must be positive in circle AOI {idx + 1}.")
-            
-            if (x_center - radius < 0 or x_center + radius > screen_width or
-                y_center - radius < 0 or y_center + radius > screen_height):
-                raise ValueError(f"Circle AOI {idx + 1} exceeds screen boundaries (Width: {screen_width}, Height: {screen_height}).")
             
             # Calculate circle boundary points
             theta = np.linspace(0, 2 * np.pi, 100)
@@ -204,6 +196,9 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=20):
     
     # Invert y-axis to match screen coordinates
     ax.invert_yaxis()
+    
+    # Set the x-axis to the top
+    ax.xaxis.tick_top()
         
     # draw the AOI boundaries if defined
     if aoi_definitions is not None:

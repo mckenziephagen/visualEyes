@@ -38,11 +38,11 @@ def test_define_aoi_rectangle():
     mask = define_aoi(screen_dimensions, aoi_definitions)
     
     # Check dimensions
-    assert mask.shape == screen_dimensions, "Mask dimensions mismatch."
+    assert mask.shape == screen_dimensions, 'Mask dimensions mismatch.'
     
     # Check values in AOI
-    assert np.all(mask[2:5, 2:5] == 1), "Rectangle AOI is incorrect."
-    assert np.all(mask[:2, :] == 0) and np.all(mask[:, :2] == 0), "Outside AOI values are incorrect."
+    assert np.all(mask[2:5, 2:5] == 1), 'Rectangle AOI is incorrect.'
+    assert np.all(mask[:2, :] == 0) and np.all(mask[:, :2] == 0), 'Outside AOI values are incorrect.'
 
 def test_define_aoi_circle():
     """
@@ -55,26 +55,26 @@ def test_define_aoi_circle():
     mask = define_aoi(screen_dimensions, aoi_definitions)
     
     # Check dimensions
-    assert mask.shape == screen_dimensions, "Mask dimensions mismatch."
+    assert mask.shape == screen_dimensions, 'Mask dimensions mismatch.'
     
     # Check that circle center is included
-    assert mask[5, 5] == 1, "Circle center is not included."
+    assert mask[5, 5] == 1, 'Circle center is not included.'
     
     # Check that outside circle is excluded
-    assert mask[0, 0] == 0, "Outside AOI values are incorrect."
+    assert mask[0, 0] == 0, 'Outside AOI values are incorrect.'
 
 def test_define_aoi_invalid_input():
     """
     One shot test of whether the function raises errors for invalid input
     """
     # Test with invalid screen dimensions
-    with pytest.raises(ValueError, match="Screen dimensions must have two elements."):
+    with pytest.raises(ValueError, match='Screen dimensions should have two elements.'):
         define_aoi((10,), [{'shape': 'rectangle', 'coordinates': (2, 5, 2, 5)}])
     
     # Test with unsupported AOI shape
-    with pytest.raises(ValueError, match="Unsupported AOI shape: triangle"):
+    with pytest.raises(ValueError, match='Unsupported AOI shape: triangle'):
         define_aoi((10, 10), [{'shape': 'triangle', 'coordinates': (2, 5, 2, 5)}])
     
     # Test with invalid rectangle coordinates
-    with pytest.raises(ValueError, match="Rectangle coordinates must be a tuple, list, or numpy array with four elements."):
+    with pytest.raises(ValueError, match='Rectangle coordinates should have four elements'):
         define_aoi((10, 10), [{'shape': 'rectangle', 'coordinates': (2, 5)}])
