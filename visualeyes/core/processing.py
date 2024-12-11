@@ -10,18 +10,18 @@ def epoch_data(eye_data, window_start, window_duration):
     Parameters:
     -----------
     eye_data : pd.DataFrame
-        data from eyelinkio output to be epoched
+        Data from eyelinkio output to be epoched
     window_start : int/float or list of int/float
-        start of the window(s)
+        Start of the window(s)
     window_duration : int/float, or a list of int/float
-        duration of the window(s)
+        Duration of the window(s)
         
     Returns:
     --------
     epochs : list
-        list of epochs
+        List of epochs
     epoch_data : pd.DataFrame
-        data epoched based on the given window size
+        Data epoched based on the given window size
     '''
     
     # check if data is a dataframe
@@ -220,15 +220,8 @@ def define_aoi(screen_dimensions, aoi_definitions):
             # Check if the AOI is within the screen boundaries
             if ((x_center - radius) < 0) or ((y_center - radius) < 0) or ((x_center + radius > screen_width)) or ((y_center + radius) > screen_height):
                 raise ValueError(f"Circle exceeds screen boundaries.")
-            
-            # # Loop through all pixels in the screen
-            # for y in range(screen_height):
-            #     for x in range(screen_width):
-            #         # Use the equation of a circle to check if (x, y) is inside
-            #         if (x - x_center)**2 + (y - y_center)**2 <= radius**2:
-            #             mask[y, x] = 1 #All pixels within the circle are 1
-                        
-            # More efficiently, we can use numpy to create the mask (faster than looping)
+        
+            # We can use numpy to create the mask (faster than looping)
             y, x = np.ogrid[:screen_height, :screen_width] # Create a grid of x and y coordinates
             mask[(x - x_center)**2 + (y - y_center)**2 <= radius**2] = 1 # Set all pixels within the circle to 1
 
