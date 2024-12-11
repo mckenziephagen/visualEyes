@@ -91,8 +91,8 @@ def epoch_data(eye_data, window_start, window_duration):
             end_time = window_start[start] + window_duration
             
         # get data within the window
-        # TODO: inclusive or exclusive of the start and end time?
-        data = eye_data[(eye_data['time'] >= start_time) & (eye_data['time'] <= end_time)] 
+        # inclusive of the start time and exclusive of the end time
+        data = eye_data[(eye_data['time'] >= start_time) & (eye_data['time'] < end_time)] 
         
         # append the data to the list
         epoch_data.append(data)
