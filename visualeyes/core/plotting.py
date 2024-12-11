@@ -155,7 +155,7 @@ def overlay_aoi(aoi_definitions, screen_dimensions, ax):
 
     return ax
 
-def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=20):
+def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     """
     Plots a heatmap of eye-tracking data and overlays AOIs if defined.
 
@@ -177,7 +177,10 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=20):
             (data['ypos'] >= 0) & (data['ypos'] <= screen_height)]
 
     # Determine bins (depends a bit on screen)
-    if isinstance(bins, numbers.Integral):  # User-defined, if bins for x and y are the same
+    if bins is None:  # Default bins, 20 px bins here if nothing else is given
+        bins_x = int(screen_width / 20)
+        bins_y = int(screen_height / 20)
+    elif isinstance(bins, numbers.Integral):  # User-defined, if bins for x and y are the same
         bins_x = bins_y = bins
     elif isinstance(bins, (tuple, list, np.ndarray)) and len(bins) == 2:  # User-defined, if different bins for x and y are desired
         bins_x, bins_y = bins
@@ -191,11 +194,9 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=20):
     fig, ax = plt.subplots()
     
     # Plot the heatmap:
-    heatmap_img = ax.imshow(heatmap, origin='upper', cmap='viridis', extent=[0, screen_width, 0, screen_height])
-    fig.colorbar(heatmap_img, ax=ax, label='Count')
+    heatmap_img = ax.imshow(heatmap, origin='upper', cmap='viridis', extent=[0, screen_width, screen_height, 0])
     
-    # Invert y-axis to match screen coordinates
-    ax.invert_yaxis()
+    fig.colorbar(heatmap_img, ax=ax, label='Count')
     
     # Set the x-axis to the top
     ax.xaxis.tick_top()
