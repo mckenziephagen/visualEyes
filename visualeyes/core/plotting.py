@@ -40,7 +40,7 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     screen_dimensions_validation(screen_dimensions)
     
     # validate the input dataframe and save the x and y coordinates if the dataframe is valid
-    x_coord, y_coord = dataframe_validation(data)
+    (x_coord, y_coord), _, _ = dataframe_validation(data, screen_dimensions, drop_outlier=True)
 
     # check if there are data outside screen dimension
     out_of_bounds_x = np.where((x_coord < 0) | (x_coord >= screen_dimensions[1]))[0] # list of indices
@@ -89,7 +89,7 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     
     # optionally, overlay aoi
     if aoi_definitions is not None:
-        ax.overlay(aoi_definitions, screen_dimensions, ax)
+        overlay_aoi(aoi_definitions, screen_dimensions, ax)
 
     if save_png:
         if not save_path:
@@ -166,15 +166,17 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     - bins: Either an integer specifying the number of bins for both dimensions,
             or a tuple (bins_x, bins_y) for separate bin sizes.
     """
-    # Filter NaN values in the gaze columns
-    data = data.dropna(subset=['xpos', 'ypos'])
 
     # Get screen width and height
     screen_height, screen_width = screen_dimensions
-
-    # Filter gaze data outside the screen coordinates
-    data = data[(data['xpos'] >= 0) & (data['xpos'] <= screen_width) & 
-            (data['ypos'] >= 0) & (data['ypos'] <= screen_height)]
+    
+    # Validate the data
+    coords, _, _ = dataframe_validation(data, screen_dimensions, drop_outlier=True)
+    x_coord, y_coord = coords
+    
+    # Validate the AOI definitions
+    if aoi_definitions is not None:
+        aoi_definitions_validation(aoi_definitions, screen_dimensions)
 
     # Determine bins (depends a bit on screen)
     if bins is None:  # Default bins, 20 px bins here if nothing else is given
@@ -187,15 +189,14 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     else:
         raise ValueError("`bins` must be an integer or a tuple of two integers.")
 
-    heatmap = np.histogram2d(
-    data['xpos'], data['ypos'], bins=[bins_x, bins_y])[0]
-
     # Initialize the plot
     fig, ax = plt.subplots()
     
-    # Plot the heatmap:
-    heatmap_img = ax.imshow(heatmap, origin='upper', cmap='viridis', extent=[0, screen_width, screen_height, 0])
+    heatmap = np.histogram2d(
+    x_coord, y_coord, bins=[bins_x, bins_y])[0]
     
+    # Plot the heatmap
+    heatmap_img = ax.imshow(heatmap.T, origin='upper', cmap='viridis', extent=[0, screen_width, screen_height, 0], vmin=0, vmax=1)
     fig.colorbar(heatmap_img, ax=ax, label='Count')
     
     # Set the x-axis to the top
