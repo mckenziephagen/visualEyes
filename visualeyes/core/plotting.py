@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from .utility import (dataframe_validation, aoi_definitions_validation, screen_dimensions_validation)
+from ._utility import (dataframe_validation, aoi_definitions_validation, screen_dimensions_validation)
 import numbers
 
 def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None, save_path=None, marker_size=60):

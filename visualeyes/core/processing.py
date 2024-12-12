@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import numbers
-from .utility import (aoi_mask_validation, dataframe_validation, 
+from ._utility import (aoi_mask_validation, dataframe_validation, 
                       aoi_definitions_validation, screen_dimensions_validation)
 
 def epoch_data(eye_data, window_start, window_duration):
