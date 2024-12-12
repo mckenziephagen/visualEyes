@@ -1,36 +1,43 @@
 import pandas as pd
 import numpy as np
-from eyelinkio import read_edf
 import matplotlib.pyplot as plt
 import os
-from .utility import dataframe_validation
+from .utility import (dataframe_validation, aoi_definitions_validation, screen_dimensions_validation)
+import numbers
 
-def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None, save_path=None):
+def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None, save_path=None, marker_size=60):
     """
-    plot the data on the AOI mask, and optionally save the plot to the working directory as a PNG file.
+    Plot the data on the AOI mask, and optionally save the plot to the working directory as a PNG file.
 
-    Inputs:
-    - data: pd.DataFrame
-    - screen dimensions: tuple
-        (height, width)
-    - aoi_definitions: list of dict or None
-        Each dict defines one AOI (so we can have multiple) with keys:
+    Parameters:
+    ----------
+    data: pd.DataFrame
+        The data to be plotted. Must contain 'xpos' and 'ypos' columns or 'axp' and 'ayp' columns.
+    screen_dimensions: tuple
+        The dimensions of the screen in pixels (height, width).
+    aoi_definitions: dict, list of dict, or None
+        The AOI definitions to overlay on the plot. Each dict should contain:
         - 'shape': 'rectangle' or 'circle'.
-        - 'coordinates': tuple of coordinates:
+        - 'coordinates': tuple, list or np.ndarray of coordinates.
             - for rectangluar AOI's: (x1, x2, y1, y2), upper-bounds non-inclusive. 
             - for circlular AOI's: (x_center, y_center, radius).
-    - save_png: bool or None
-        If True, the results will be saved as png file(s)
-    - save_path: str or None 
+    save_png: bool or None
+        Whether to save the plot as a PNG file.
+    save_path: str or None
+        The path to save the PNG file to.
         
-    Outputs:
-    - fig, ax
-
+    Returns:
+    -------
+    fig, ax: matplotlib.figure.Figure, matplotlib.axes.Axes
+        The figure and axes objects of the plot.    
     """
 
     # check if input data is a pd.DataFrame
     if not isinstance(data, pd.DataFrame):
         raise ValueError("Input data should be a pandas dataframe")
+    
+    # check if screen_dimensions is valid
+    screen_dimensions_validation(screen_dimensions)
     
     # validate the input dataframe and save the x and y coordinates if the dataframe is valid
     x_coord, y_coord = dataframe_validation(data)
@@ -39,36 +46,50 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     out_of_bounds_x = np.where((x_coord < 0) | (x_coord >= screen_dimensions[1]))[0] # list of indices
     out_of_bounds_y = np.where((y_coord < 0) | (y_coord >= screen_dimensions[0]))[0] # list of indices
 
+    # combine the out of bounds indices
     out_of_bounds = np.unique(np.concatenate([out_of_bounds_x, out_of_bounds_y]))
 
+    # remove the out of bounds data
     clean_data = data.drop(index=out_of_bounds)
 
+    # Initialize the plot
     fig, ax = plt.subplots()
-
+    
+    # Set the plot limits
     ax.set_xlim(0, screen_dimensions[1]-1)
-
     ax.set_ylim(0, screen_dimensions[0]-1)
 
-    ax.set_ylim(ax.get_ylim()[::-1])
+    # Invert y-axis to match screen coordinates
+    ax.invert_yaxis()
 
+    # Set the x-axis to the top
     ax.xaxis.tick_top()
 
-    # plot scatter plot
+    # if the data contains 'axp' and 'ayp' columns, plot the data with varying marker sizes
     if 'axp' in clean_data.columns and 'ayp' in clean_data.columns:
+        
+        # calculate the fixation duration
         fixation_duration = []
+        
         for _, series in clean_data.iterrows():
             single_duration = series['etime'] - series['stime']
             fixation_duration.append(single_duration)
+            
+        # find a scaling factor for the marker size
         max_duration = round(max(fixation_duration), 2)
         mag_factor = [duration/max_duration for duration in fixation_duration]
-        ax.scatter(clean_data['axp'], clean_data['ayp'], color='skyblue', marker='o', facecolors='none', s=[160 * mag for mag in mag_factor]) 
+        
+        # plot the data
+        ax.scatter(clean_data['axp'], clean_data['ayp'], color='skyblue', marker='o', 
+                   facecolors='none', s=[3 * marker_size * mag for mag in mag_factor]) 
+    
     else:
-        ax.scatter(clean_data['xpos'], clean_data['ypos'], color='skyblue', marker='o', s=60)
+        # plot the data with a fixed marker size
+        ax.scatter(clean_data['xpos'], clean_data['ypos'], color='skyblue', marker='o', s=marker_size)
     
     # optionally, overlay aoi
     if aoi_definitions is not None:
-        # ax = visualeyes.aoi_contour
-        pass
+        ax.overlay(aoi_definitions, screen_dimensions, ax)
 
     if save_png:
         if not save_path:
@@ -81,84 +102,66 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
 
     return fig, ax
 
-def aoi_overlay(aoi_definitions, screen_width, screen_height):
+def overlay_aoi(aoi_definitions, screen_dimensions, ax):
     """
     Overlay shape of AOIs on plots.
 
     Parameters:
-    - aoi_definitions (list): A list of AOI dictionaries, containing:
-        - shape (str): "rectangle" or "circle" AOI's.
-        - coordinates (list): Coordinates defining the AOI.
-          For "rectangle": [x1, x2, y1, y2].
-          For "circle": [x_center, y_center, radius].
-    - screen_width (int): Width of the screen in pixels.
-    - screen_height (int): Height of the screen in pixels.
-
+    ----------
+    aoi_definitions: list of dict
+        List of dictionaries defining the AOIs. Each dictionary should contain:
+        - 'shape': 'rectangle' or 'circle'.
+        - 'coordinates': list, tuple, or np.ndarray of coordinates.
+    screen_dimensions: tuple
+        The dimensions of the screen in pixels (height, width).
+    ax: matplotlib.axes.Axes
+        The axes object to overlay the AOIs on.
+        
     Returns:
-    - list: A list of AOI boundaries as lists of (x, y) tuples.
+    -------
+    ax: matplotlib.axes.Axes
+        The axes object with the AOIs overlaid.
     """
-    aoi_boundaries = []
+    
+    # Validate the input AOI definitions
+    aoi_definitions_validation(aoi_definitions, screen_dimensions)
+    
+    # Validate the screen dimensions
+    screen_dimensions_validation(screen_dimensions)
+    
+    screen_height, screen_width = screen_dimensions
 
-    for idx, aoi in enumerate(aoi_definitions): #check for each AOI and make the error specific to that AOI
+    for idx, aoi in enumerate(aoi_definitions): # check for each AOI and make the error specific to that AOI
         shape = aoi['shape'].lower()
         coordinates = aoi['coordinates']
-        
-        # Check shape
-        if shape not in ['rectangle', 'circle']:
-            raise ValueError(f"Unsupported AOI shape '{shape}' in AOI {idx + 1}. Must be 'rectangle' or 'circle'.")
-        
-        # Check coordinates
-        if not all(isinstance(coord, (int, float)) for coord in coordinates):
-            raise ValueError(f"All coordinates must be numbers in AOI {idx + 1}.")
-        
-        if any(coord < 0 for coord in coordinates):
-            raise ValueError(f"Coordinates cannot be negative in AOI {idx + 1}.")
-        
+
         if shape == 'rectangle':
-            if len(coordinates) != 4:
-                raise ValueError(f"Rectangle AOI {idx + 1} must have 4 coordinates: [x1, x2, y1, y2].")
+            x1, x2, y1, y2 = map(int, coordinates)
             
-            x1, x2, y1, y2 = coordinates
-            
-            if x1 > x2:
-                raise ValueError(f"x1 cannot be greater than x2 in AOI {idx + 1}.")
-            if y1 > y2:
-                raise ValueError(f"y1 cannot be greater than y2 in AOI {idx + 1}.")
-            
-            if x2 > screen_width or y2 > screen_height:
-                raise ValueError(f"AOI {idx + 1} exceeds screen boundaries (Width: {screen_width}, Height: {screen_height}).")
-            
-            #Add rectangle boundaries
-            aoi_boundaries.append([(x1, y1), (x1, y2), (x2, y2), (x2, y1), (x1, y1)])
+            # Plot rectangle boundary on the axes
+            ax.plot([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1], color='red', lw=1)
         
         elif shape == 'circle':
-            if len(coordinates) != 3:
-                raise ValueError(f"Circle AOI {idx + 1} must have 3 coordinates: [x_center, y_center, radius].")
             
             x_center, y_center, radius = coordinates
             
-            if radius <= 0:
-                raise ValueError(f"Radius must be positive in circle AOI {idx + 1}.")
-            
-            if (x_center - radius < 0 or x_center + radius > screen_width or
-                y_center - radius < 0 or y_center + radius > screen_height):
-                raise ValueError(f"Circle AOI {idx + 1} exceeds screen boundaries (Width: {screen_width}, Height: {screen_height}).")
-            
-            #Add circle boundary
+            # Calculate circle boundary points
             theta = np.linspace(0, 2 * np.pi, 100)
             x = x_center + radius * np.cos(theta)
             y = y_center + radius * np.sin(theta)
-            aoi_boundaries.append(list(zip(x, y)))
+            
+            # Plot circle boundary on the axes
+            ax.plot(x, y, color='red', lw=1)
 
-    return aoi_boundaries
+    return ax
 
-def plot_heatmap(data, screen_coords, aoi_boundaries=None, bins=None):
+def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     """
     Plots a heatmap of eye-tracking data and overlays AOIs if defined.
 
     Parameters:
     - data: DataFrame containing 'xpos' and 'ypos' for plotting.
-    - screen_coords: Tuple of (screen_width, screen_height,).
+    - screen_dimensions: Tuple of (screen_height, screen_width).
     - aoi_definitions: List of dictionaries defining the AOIs (optional).
     - bins: Either an integer specifying the number of bins for both dimensions,
             or a tuple (bins_x, bins_y) for separate bin sizes.
@@ -167,7 +170,7 @@ def plot_heatmap(data, screen_coords, aoi_boundaries=None, bins=None):
     data = data.dropna(subset=['xpos', 'ypos'])
 
     # Get screen width and height
-    screen_width, screen_height = screen_coords
+    screen_height, screen_width = screen_dimensions
 
     # Filter gaze data outside the screen coordinates
     data = data[(data['xpos'] >= 0) & (data['xpos'] <= screen_width) & 
@@ -177,9 +180,9 @@ def plot_heatmap(data, screen_coords, aoi_boundaries=None, bins=None):
     if bins is None:  # Default bins, 20 px bins here if nothing else is given
         bins_x = int(screen_width / 20)
         bins_y = int(screen_height / 20)
-    elif isinstance(bins, int):  # User-defined, if bins for x and y are the same
+    elif isinstance(bins, numbers.Integral):  # User-defined, if bins for x and y are the same
         bins_x = bins_y = bins
-    elif isinstance(bins, (tuple, list)) and len(bins) == 2:  # User-defined, if different bins for x and y are desired
+    elif isinstance(bins, (tuple, list, np.ndarray)) and len(bins) == 2:  # User-defined, if different bins for x and y are desired
         bins_x, bins_y = bins
     else:
         raise ValueError("`bins` must be an integer or a tuple of two integers.")
@@ -187,26 +190,23 @@ def plot_heatmap(data, screen_coords, aoi_boundaries=None, bins=None):
     heatmap = np.histogram2d(
     data['xpos'], data['ypos'], bins=[bins_x, bins_y])[0]
 
+    # Initialize the plot
+    fig, ax = plt.subplots()
+    
     # Plot the heatmap:
-    plt.imshow(heatmap.T, origin='lower', cmap='viridis', extent=[0, screen_width, 0, screen_height])
-    plt.colorbar(label='Count')
-
-    # Adjust x and y axis limits
-    plt.xlim(0, screen_width)
-    plt.ylim(0, screen_height)
-
-    # If AOIs are defined, draw them
-    if aoi_boundaries:
-        for boundary in aoi_boundaries:
-            # Outline the AOI by drawing its boundary
-            boundary = np.array(boundary)
-            plt.plot(boundary[:, 0], boundary[:, 1], color='red', lw=1)
-
-    # Invert y-axis to set (0, 0) at the top-left
-    plt.gca().invert_yaxis() 
-
+    heatmap_img = ax.imshow(heatmap, origin='upper', cmap='viridis', extent=[0, screen_width, screen_height, 0])
+    
+    fig.colorbar(heatmap_img, ax=ax, label='Count')
+    
+    # Set the x-axis to the top
+    ax.xaxis.tick_top()
+        
+    # draw the AOI boundaries if defined
+    if aoi_definitions is not None:
+        ax = overlay_aoi(aoi_definitions, screen_dimensions, ax)
+        
     # Add title and show
-    plt.title('Heatmap of Gaze Data')
-    plt.xlabel('X Position (pixels)')
-    plt.ylabel('Y Position (pixels)')
-    plt.show()
+    ax.set_xlabel('X Position (pixels)')
+    ax.set_ylabel('Y Position (pixels)')
+        
+    return fig, ax

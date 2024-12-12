@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import numbers
-from .utility import aoi_mask_validation, dataframe_validation
+from .utility import (aoi_mask_validation, dataframe_validation, 
+                      aoi_definitions_validation, screen_dimensions_validation)
 
 def epoch_data(eye_data, window_start, window_duration):
     '''
@@ -10,18 +11,18 @@ def epoch_data(eye_data, window_start, window_duration):
     Parameters:
     -----------
     eye_data : pd.DataFrame
-        data from eyelinkio output to be epoched
+        Data from eyelinkio output to be epoched
     window_start : int/float or list of int/float
-        start of the window(s)
+        Start of the window(s)
     window_duration : int/float, or a list of int/float
-        duration of the window(s)
+        Duration of the window(s)
         
     Returns:
     --------
     epochs : list
-        list of epochs
+        List of epochs
     epoch_data : pd.DataFrame
-        data epoched based on the given window size
+        Data epoched based on the given window size
     '''
     
     # check if data is a dataframe
@@ -41,7 +42,7 @@ def epoch_data(eye_data, window_start, window_duration):
         raise ValueError('window_duration should be a list, a numpy array, or a single value')
     
     # if window_start is a single value, window_duration should also be a single value
-    if isinstance(window_start, (numbers.Integral, numbers.Real)) and not isinstance(numbers.Integral, numbers.Real):
+    if isinstance(window_start, (numbers.Integral, numbers.Real)) and not isinstance(window_duration, (numbers.Integral, numbers.Real)):
         raise ValueError('if window_start is a single value, window_duration should also be a single value')
     
     # if window_start is a list or numpy array, window_duration can be a list, a numpy array, or a single value
@@ -91,8 +92,8 @@ def epoch_data(eye_data, window_start, window_duration):
             end_time = window_start[start] + window_duration
             
         # get data within the window
-        # TODO: inclusive or exclusive of the start and end time?
-        data = eye_data[(eye_data['time'] >= start_time) & (eye_data['time'] <= end_time)] 
+        # inclusive of the start time and exclusive of the end time
+        data = eye_data[(eye_data['time'] >= start_time) & (eye_data['time'] < end_time)] 
         
         # append the data to the list
         epoch_data.append(data)
@@ -123,44 +124,37 @@ def epoch_data(eye_data, window_start, window_duration):
     
     return epochs, epoch_data
 
-def define_aoi(screen_width, screen_height, aoi_definitions):
+def define_aoi(screen_dimensions, aoi_definitions):
     """
     Define Areas of Interest (AOIs).
     
     Parameters:
     -----------
-    screen_width : int
-        Width of the screen in pixels.
-    screen_height : int
-        Height of the screen in pixels.
-    aoi_definitions : list of dict
-        Each dict defines one AOI (so we can have multiple) with keys:
+    screen_dimensions : tuple, list, or np.array
+        Screen dimensions (height, width).
+        
+    aoi_definitions : dict or a list of dict
+        Each dictionary defines one AOI (so we can have multiple) with keys:
         - 'shape': 'rectangle' or 'circle'.
         - 'coordinates': Tuple of coordinates:
             - For rectangluar AOI's: (x1, x2, y1, y2), upper-bounds non-inclusive. 
             - For circlular AOI's: (x_center, y_center, radius).
-    visual_angle : dict, optional
-        Info to convert visual angles to pixels.
         
     Returns:
     --------
     mask : 2D numpy array
         Binary mask of the AOIs
     """
-    # Check inputs 
-    if not isinstance(screen_width, numbers.Integral):
-        raise ValueError("Screen width coordinates must be integers.")
-
-    if not isinstance(screen_height, numbers.Integral):
-        raise ValueError("Screen height coordinates must be integers.")
-
-    if screen_width <= 0 or screen_height <= 0:
-        raise ValueError("Screen dimensions must be positive.")
-
-    if not isinstance(aoi_definitions, list):
-        raise ValueError("AOI definitions must be a list of dictionaries.")
+    
+    # validate screen_dimensions
+    screen_dimensions_validation(screen_dimensions)
+    
+    # validate aoi_definitions
+    aoi_definitions_validation(aoi_definitions, screen_dimensions)
 
     # Initialize a mask
+    # mask is a 2D numpy array with the same dimensions as the screen
+    screen_height, screen_width = screen_dimensions
     mask = np.zeros((screen_height, screen_width), dtype=np.uint8)
 
     # Define each AOI
@@ -169,22 +163,23 @@ def define_aoi(screen_width, screen_height, aoi_definitions):
         coordinates = aoi['coordinates']
         
         if shape == 'rectangle':
-        
-            x1, y1, x2, y2 = map(int, coordinates) #Convert to integers
-            mask[y1:y2, x1:x2] = 1  #All pixels within the rectangle are 1
-            if x1 < 0 or y1 < 0 or x2 > screen_width or y2 > screen_height:
-                raise ValueError(f"Coordinates exceed screen boundaries.")
+    
+            # Convert input coordinates to integers
+            x1, x2, y1, y2 = map(int, coordinates) 
+         
+            # All pixels within the rectangle are 1
+            mask[y1:y2, x1:x2] = 1  
+            
         elif shape == 'circle':
-            x_center, y_center, radius = map(int, coordinates) #Convert to integers
-            if x_center - radius < 0 or y_center - radius < 0 or x_center + radius > screen_width or y_center + radius > screen_height:
-                raise ValueError(f"Circle exceeds screen boundaries.")
-            for y in range(screen_height):
-                for x in range(screen_width):
-                    # Use the equation of a circle to check if (x, y) is inside
-                    if (x - x_center)**2 + (y - y_center)**2 <= radius**2:
-                        mask[y, x] = 1 #All pixels within the circle are 1
-        else:
-            raise ValueError(f"Unsupported AOI shape: {shape}")
+            
+            # Convert input coordinates to integers
+            x_center, y_center, radius = map(int, coordinates) 
+            
+            # Create a grid of x and y coordinates
+            y, x = np.ogrid[:screen_height, :screen_width] 
+            
+            # Set all pixels within the circle to 1
+            mask[(x - x_center)**2 + (y - y_center)**2 <= radius**2] = 1 
     
     return mask
 
@@ -208,25 +203,23 @@ def percent_data_in_aoi(df, aoi_mask, screen_dimension):
         Percentage of data points in the AOI.
     """
     
+    # validate screen_dimensions
+    screen_dimensions_validation(screen_dimension)
+    
     # validate aoi_mask
     aoi_mask_validation(aoi_mask, screen_dimension)
     
     # check if df contains valid data
-    valid, coords = dataframe_validation(df)
-    if not valid:
-        raise ValueError('dataframe is not valid')
+    coords = dataframe_validation(df)
     
     x_coord = coords[0]
     y_coord = coords[1]
     
     # count the number of data points in the AOI
-    num_data_in_aoi = 0
-    for x, y in zip(x_coord, y_coord):
-        if aoi_mask[y, x] == 1:
-            num_data_in_aoi += 1
-            
+    in_aoi = aoi_mask[y_coord, x_coord] == 1
+    num_data_in_aoi = np.sum(in_aoi)
+ 
     # calculate the percentage of data points in the AOI
-    total_data_points = len(x_coord)
-    percent_in_aoi = (num_data_in_aoi/total_data_points) * 100
+    percent_in_aoi = num_data_in_aoi/ len(x_coord) * 100
     
     return percent_in_aoi
