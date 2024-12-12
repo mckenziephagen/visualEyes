@@ -1,3 +1,5 @@
+"""Test the define_aoi function."""
+
 import os
 from visualeyes import define_aoi
 import eyelinkio
@@ -47,7 +49,6 @@ def test_define_aoi_rectangle():
 def test_define_aoi_circle():
     """
     One shot test of whether the function correctly defines a circular AOI
-
     """
     screen_dimensions = (10, 10)
     aoi_definitions = [{'shape': 'circle', 'coordinates': (5, 5, 2)}]
