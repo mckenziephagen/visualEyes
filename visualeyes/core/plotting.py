@@ -159,7 +159,7 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     """
 
     # Get screen width and height
-   # screen_height, screen_width = screen_dimensions
+    screen_height, screen_width = screen_dimensions
     screen_dimensions_validation(screen_dimensions)
 
     # Validate the data
