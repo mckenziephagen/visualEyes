@@ -6,29 +6,29 @@ import eyelinkio
 import pytest
 import numpy as np
 
-# def test_run_correctly():
-#     """
-#     Smoke test of whether the function runs without errors for all edf files in the data folder
-#     """
+def test_run_correctly():
+    """
+    Smoke test of whether the function runs without errors for all edf files in the data folder
+    """
 
-#     data_path = os.path.join('..', 'data')
+    data_path = os.path.join('data')
     
-#     # for all edf files in the data folder
-#     for file in os.listdir(data_path):
-#         if file.endswith('.edf'):
+    # for all edf files in the data folder
+    for file in os.listdir(data_path):
+        if file.endswith('.edf'):
             
-#             # read the edf file
-#             edf_path = os.path.join(data_path, file)
-#             edf = eyelinkio.read_edf(edf_path)
+            # read the edf file
+            edf_path = os.path.join(data_path, file)
+            edf = eyelinkio.read_edf(edf_path)
             
-#             # specify the screen coordinates and the AOI definitions
-#             screen_coords = edf['info']['screen_coords']
-#             aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462', '590', '563', '691')}]
+            # specify the screen coordinates and the AOI definitions
+            screen_coords = edf['info']['screen_coords']
+            aoi_definitions = [{'shape':'rectangle', 'coordinates': ('462', '590', '563', '691')}]
             
-#             # define the AOI
-#             _ = define_aoi(screen_coords, aoi_definitions)
+            # define the AOI
+            _ = define_aoi(screen_coords, aoi_definitions)
     
-#     return None
+    return None
            
 def test_define_aoi_rectangle():
     """
