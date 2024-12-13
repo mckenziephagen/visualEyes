@@ -63,7 +63,7 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
         # calculate the fixation duration
         fixation_duration = []
         
-        for _, series in clean_data.iterrows():
+        for _, series in data.iterrows():
             single_duration = series['etime'] - series['stime']
             fixation_duration.append(single_duration)
             
