@@ -1,0 +1,41 @@
+name: Python Package using Conda
+
+on: [push,  pull_request]
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    strategy:
+      max-parallel: 5
+    defaults:
+      run:
+        shell: bash -l {0} 
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: setup miniforge
+      uses: conda-incubator/setup-miniconda@v3
+      with: 
+        python-version: "3.12" 
+        environment-file: environment.yml
+        activate-environment: vizeyes
+    - name: Conda Info
+      run: |
+        conda env list
+        conda info -a
+        conda list
+    - name: Install Eyelink
+      run: | 
+        curl -O https://www.sr-research.com/download/displaysoftwarerelease/EyeLinkDevKit_macOS10.12_and_up_v2.1.1197.dmg --verbose
+        hdiutil attach EyeLinkDevKit_macOS10.12_and_up_v2.1.1197.dmg -mountpoint /Volumes/eyelink_devkit
+        sudo installer -pkg /Volumes/eyelink_devkit/EyeLinkDevelopersKit.pkg -target /
+    - name: Lint with flake8
+      run: |
+        python -c "import flake8; print(flake8.__version__)"
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest

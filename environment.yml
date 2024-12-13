@@ -1,0 +1,15 @@
+name: vizeyes
+channels:
+  - conda-forge
+dependencies:
+  - matplotlib=3.9.3
+  - numpy=2.1.3
+  - pandas=2.2.3
+  - flake8
+  - pytest
+  - pip 
+  - pip:
+      - eyelinkio
+      - -e .
+
+

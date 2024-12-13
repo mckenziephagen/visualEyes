@@ -1,0 +1,1 @@
+A cognitive psychologist training undergraduate research assistants on eye-tracking methods and quality control wants to quickly demonstrate fixation patterns after practice trials. They are experienced with eye-tracking and intermediate in Python.

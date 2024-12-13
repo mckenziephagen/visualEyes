@@ -1,0 +1,1 @@
+A behavioral scientist is studying differences in gaze behavior in participants learning to read text in different ortographies (e.g, native English speaker learning to read Arabic). They need want to visualize gaze patterns after each block of trials. They are intermediate Python users.
