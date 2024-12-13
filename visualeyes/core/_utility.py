@@ -164,7 +164,7 @@ def aoi_definitions_validation(aoi_definitions, screen_dimensions):
         
         # check if the 'shape' key has a valid value
         if aoi['shape'] not in ['rectangle', 'circle']:
-            raise ValueError(f'Unsupported AOI shape: {aoi['shape']}')
+            raise ValueError(f"Unsupported AOI shape: {aoi['shape']}")
         
         # check if the 'coordinates' key corresponds to a tuple, list, or numpy array
         if not isinstance(aoi['coordinates'], (tuple, list, np.ndarray)):

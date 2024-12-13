@@ -49,37 +49,35 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     # Initialize the plot
     fig, ax = plt.subplots()
     
-    # Set the plot limits
+  
+    # Invert y-axis to match screen coordinates
+    ax.invert_yaxis()
     ax.set_xlim(0, screen_dimensions[-1])
     ax.set_ylim(0, screen_dimensions[0])
 
-    # Invert y-axis to match screen coordinates
-    # ax.invert_yaxis()
-
     # Set the x-axis to the top
-    # ax.xaxis.tick_top()
 
-    # if the data contains 'axp' and 'ayp' columns, plot the data with varying marker sizes
-    # if 'axp' in data.columns and 'ayp' in data.columns:
+   # if the data contains 'axp' and 'ayp' columns, plot the data with varying marker sizes
+    if 'axp' in data.columns and 'ayp' in data.columns:
         
-    #     # calculate the fixation duration
-    #     fixation_duration = []
+        # calculate the fixation duration
+        fixation_duration = []
         
-    #     for _, series in clean_data.iterrows():
-    #         single_duration = series['etime'] - series['stime']
-    #         fixation_duration.append(single_duration)
+        for _, series in clean_data.iterrows():
+            single_duration = series['etime'] - series['stime']
+            fixation_duration.append(single_duration)
             
-    #     # find a scaling factor for the marker size
-    #     max_duration = round(max(fixation_duration), 2)
-    #     mag_factor = [duration/max_duration for duration in fixation_duration]
+        # find a scaling factor for the marker size
+        max_duration = round(max(fixation_duration), 2)
+        mag_factor = [duration/max_duration for duration in fixation_duration]
         
-    #     # plot the data
-    #     ax.scatter(data['axp'], data['ayp'], color='skyblue', marker='o', 
-    #                facecolors='none', s=[3 * marker_size * mag for mag in mag_factor]) 
-    
+        # plot the data
+        ax.scatter(data['axp'], data['ayp'], color='skyblue', marker='o', 
+                   facecolors='none', s=[3 * marker_size * mag for mag in mag_factor]) 
+
         # plot the data with a fixed marker size
-    plt.scatter(y=data['ypos'], x=data['xpos'], color='skyblue', marker='o', s=marker_size)
-    
+    plt.scatter(y=data['ypos'], x=data['xpos'], color='skyblue', marker='o', s=marker_size) 
+
     # optionally, overlay aoi
     if aoi_definitions is not None:
         overlay_aoi(aoi_definitions, screen_dimensions, ax)
@@ -93,7 +91,7 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
         fig.savefig(file_path)
         print(f"Saved PNG file to {file_path}")
 
-    return fig, ax, data
+    return fig, ax
 
 def overlay_aoi(aoi_definitions, screen_dimensions, ax):
     """
@@ -186,15 +184,16 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     # Initialize the plot
     fig, ax = plt.subplots()
 
-    ax.set_xlim(0, screen_dimensions[1])
-    ax.set_ylim(0, screen_dimensions[0])
-    
+   
     heatmap,  xedges, yedges = np.histogram2d(x_coord, y_coord, bins=[bins_x, bins_y])    
     # Plot the heatmap
     heatmap_img = ax.imshow(heatmap.T, interpolation='nearest', origin='lower',
-        extent=[0, xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=1)
+        extent=[0, xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=20)
 
-    fig.colorbar(heatmap_img, ax=ax, label='Count')
+    fig.colorbar(heatmap_img, ax=ax, label='Number of trials spent looking at screen location')
+
+    ax.set_xlim(0, screen_dimensions[1])
+    ax.set_ylim(0, screen_dimensions[0])
     
     # Set the x-axis to the top
     # ax.xaxis.tick_top()
@@ -204,7 +203,7 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
         ax = overlay_aoi(aoi_definitions, screen_dimensions, ax)
         
     # Add title and show
-    # ax.set_xlabel('X Position (pixels)')
-    # ax.set_ylabel('Y Position (pixels)')
+    ax.set_xlabel('X Position (pixels)')
+    ax.set_ylabel('Y Position (pixels)')
         
-    return fig, ax, data
+    return fig, ax
