@@ -10,8 +10,8 @@ dependencies:
   - pip 
   - ipykernel
   - pip:
-      - eyelinkio
       - -e git+https://github.com/BrendaQiu/eyelinkio.git@trial_info#egg=eyelinkio
+      - -e . 
 
 
 
