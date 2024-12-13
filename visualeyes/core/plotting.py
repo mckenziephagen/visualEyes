@@ -42,50 +42,43 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
     # validate the input dataframe and save the x and y coordinates if the dataframe is valid
     (x_coord, y_coord), _, _ = dataframe_validation(data, screen_dimensions, drop_outlier=True)
 
-    # check if there are data outside screen dimension
-    out_of_bounds_x = np.where((x_coord < 0) | (x_coord >= screen_dimensions[1]))[0] # list of indices
-    out_of_bounds_y = np.where((y_coord < 0) | (y_coord >= screen_dimensions[0]))[0] # list of indices
-
-    # combine the out of bounds indices
-    out_of_bounds = np.unique(np.concatenate([out_of_bounds_x, out_of_bounds_y]))
-
-    # remove the out of bounds data
-    clean_data = data.drop(index=out_of_bounds)
+    # Validate the AOI definitions
+    if aoi_definitions is not None:
+        aoi_definitions_validation(aoi_definitions, screen_dimensions)
 
     # Initialize the plot
     fig, ax = plt.subplots()
     
     # Set the plot limits
-    ax.set_xlim(0, screen_dimensions[1]-1)
-    ax.set_ylim(0, screen_dimensions[0]-1)
+    ax.set_xlim(0, screen_dimensions[-1])
+    ax.set_ylim(0, screen_dimensions[0])
 
     # Invert y-axis to match screen coordinates
-    ax.invert_yaxis()
+    # ax.invert_yaxis()
 
     # Set the x-axis to the top
-    ax.xaxis.tick_top()
+    # ax.xaxis.tick_top()
 
     # if the data contains 'axp' and 'ayp' columns, plot the data with varying marker sizes
-    if 'axp' in clean_data.columns and 'ayp' in clean_data.columns:
+    # if 'axp' in data.columns and 'ayp' in data.columns:
         
-        # calculate the fixation duration
-        fixation_duration = []
+    #     # calculate the fixation duration
+    #     fixation_duration = []
         
-        for _, series in clean_data.iterrows():
-            single_duration = series['etime'] - series['stime']
-            fixation_duration.append(single_duration)
+    #     for _, series in clean_data.iterrows():
+    #         single_duration = series['etime'] - series['stime']
+    #         fixation_duration.append(single_duration)
             
-        # find a scaling factor for the marker size
-        max_duration = round(max(fixation_duration), 2)
-        mag_factor = [duration/max_duration for duration in fixation_duration]
+    #     # find a scaling factor for the marker size
+    #     max_duration = round(max(fixation_duration), 2)
+    #     mag_factor = [duration/max_duration for duration in fixation_duration]
         
-        # plot the data
-        ax.scatter(clean_data['axp'], clean_data['ayp'], color='skyblue', marker='o', 
-                   facecolors='none', s=[3 * marker_size * mag for mag in mag_factor]) 
+    #     # plot the data
+    #     ax.scatter(data['axp'], data['ayp'], color='skyblue', marker='o', 
+    #                facecolors='none', s=[3 * marker_size * mag for mag in mag_factor]) 
     
-    else:
         # plot the data with a fixed marker size
-        ax.scatter(clean_data['xpos'], clean_data['ypos'], color='skyblue', marker='o', s=marker_size)
+    plt.scatter(y=data['ypos'], x=data['xpos'], color='skyblue', marker='o', s=marker_size)
     
     # optionally, overlay aoi
     if aoi_definitions is not None:
@@ -100,7 +93,7 @@ def plot_as_scatter(data, screen_dimensions, aoi_definitions=None, save_png=None
         fig.savefig(file_path)
         print(f"Saved PNG file to {file_path}")
 
-    return fig, ax
+    return fig, ax, data
 
 def overlay_aoi(aoi_definitions, screen_dimensions, ax):
     """
@@ -168,11 +161,12 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
     """
 
     # Get screen width and height
-    screen_height, screen_width = screen_dimensions
-    
+   # screen_height, screen_width = screen_dimensions
+    screen_dimensions_validation(screen_dimensions)
+
     # Validate the data
-    coords, _, _ = dataframe_validation(data, screen_dimensions, drop_outlier=True)
-    x_coord, y_coord = coords
+    (x_coord, y_coord), _, _ = dataframe_validation(data, screen_dimensions, drop_outlier=True)
+
     
     # Validate the AOI definitions
     if aoi_definitions is not None:
@@ -180,8 +174,8 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
 
     # Determine bins (depends a bit on screen)
     if bins is None:  # Default bins, 20 px bins here if nothing else is given
-        bins_x = int(screen_width / 20)
-        bins_y = int(screen_height / 20)
+        bins_x = int(screen_width / 10)
+        bins_y = int(screen_height / 10)
     elif isinstance(bins, numbers.Integral):  # User-defined, if bins for x and y are the same
         bins_x = bins_y = bins
     elif isinstance(bins, (tuple, list, np.ndarray)) and len(bins) == 2:  # User-defined, if different bins for x and y are desired
@@ -191,23 +185,26 @@ def plot_heatmap(data, screen_dimensions, aoi_definitions=None, bins=None):
 
     # Initialize the plot
     fig, ax = plt.subplots()
+
+    ax.set_xlim(0, screen_dimensions[1])
+    ax.set_ylim(0, screen_dimensions[0])
     
-    heatmap = np.histogram2d(
-    x_coord, y_coord, bins=[bins_x, bins_y])[0]
-    
+    heatmap,  xedges, yedges = np.histogram2d(x_coord, y_coord, bins=[bins_x, bins_y])    
     # Plot the heatmap
-    heatmap_img = ax.imshow(heatmap.T, origin='upper', cmap='viridis', extent=[0, screen_width, screen_height, 0], vmin=0, vmax=1)
+    heatmap_img = ax.imshow(heatmap.T, interpolation='nearest', origin='lower',
+        extent=[0, xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=1)
+
     fig.colorbar(heatmap_img, ax=ax, label='Count')
     
     # Set the x-axis to the top
-    ax.xaxis.tick_top()
+    # ax.xaxis.tick_top()
         
     # draw the AOI boundaries if defined
     if aoi_definitions is not None:
         ax = overlay_aoi(aoi_definitions, screen_dimensions, ax)
         
     # Add title and show
-    ax.set_xlabel('X Position (pixels)')
-    ax.set_ylabel('Y Position (pixels)')
+    # ax.set_xlabel('X Position (pixels)')
+    # ax.set_ylabel('Y Position (pixels)')
         
-    return fig, ax
+    return fig, ax, data
